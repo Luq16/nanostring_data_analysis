@@ -1,0 +1,116 @@
+---
+title: "Gene expression task report"
+author: "Luqman Awoniyi"
+date: "12/08/2021"
+output: html_document
+---
+<style>
+body {
+    padding: 10px 200px 10px 200px;
+}
+</style>
+
+```{r set-options, echo=FALSE}
+library("knitr")
+library(kableExtra)
+library(magrittr)
+options(width = 80)
+```
+
+# 1. Data Overview
+I have received gene expression raw data from X Pharmaceutical company. 
+X Pharmaceutical company has generated this data using the NanoString nCounter 
+assay.The data file format was in RCC. The data involves 5 subjects, each with 
+treated and untreated conditions. Together with the raw data,  an
+annotation file was also provided. This annotation file contains detailed 
+information about the subjects and time points used for the experient. 
+See table 1. below for an overview of the annotation file.
+
+
+<strong> Table 1: Overview of annotation file provided by X Pharmaceutical company</strong>
+```{r table, echo = FALSE}
+knitr::kable(read.csv("case_study_annotations.csv"),
+             format = 'html') %>%
+  kable_styling()
+```
+
+## 2. Bioinformatics analysis workflow
+To analyse the X Pharmaceutical company I follow the following workflow:
+
+
+```{r echo=FALSE, out.width = '100%'}
+knitr::include_graphics("workFlow.png")
+```
+<strong> Figure 1: Gene expression data analysis work flow </strong>
+
+
+### 2.1 Read raw files:
+The raw files were read using R package NanoStringQCPro. Next, a data frame containing
+all the raw counts from all the 10 samples were created (Table 2).
+
+
+<strong> Table 2: Combine raw counts from all raw data files</strong>
+```{r table2, echo = FALSE}
+knitr::kable(read.csv("raw_expression.csv"), 
+             format = 'html') %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "500px")
+```
+
+        
+### 2.2 Quality Control and Normalization.
+I have used procedure suggested in a recent article published by Bhattacharya et al.,
+2021 for both quality control and normalization.In summmary Bhattacharya et al., 2021 procedure encompases:
+
+* Technical QC flags : Using nSolver provided QC to evaluate the data for imaging, binding density, 
+linearity of the controls and limit of detection (LOD) (Table 3).
+* Below LOD QC : Using both endogenous and housekeeping genes below the limit of 
+detection as a QC flag to assess sample quality.
+* Housekeeping gene assessment: Evaluate Housekeeping gene for differential expression.
+* Pre-normalization assessment (Fig. 3)
+* RUVSeq Normalization
+* Post-normalization assessment (Fig. 3)
+
+This approach was shown to be more robust and efficient than other methods of normalization and QC.
+I technical QC flags evaluation analysis, I detected no  detect no flag (Table. 3). And the Housekeeping gene control check also shows that none of the housekeeping gene are differential expressed across samples.
+
+<strong> Table 3: Technical QC flags evaluation</strong>
+```{r table3, echo=FALSE}
+knitr::kable(read.csv("pData.csv"), format = "html") %>%
+  kable_styling() %>%
+  kableExtra::scroll_box(width = "100%", height = "500px")
+```
+
+
+In addition, another common way of evaluate quality is using positive and negative control genes to assess quality by evaluating signal to noise level (Fig. 3).
+
+```{r echo=FALSE, out.width = '100%'}
+knitr::include_graphics("heat_map.png")
+```
+<strong> Figure 2: Quality evaluation heat map. It shows that POS_E and POS_F have low expression (low signal). </strong>
+
+
+After normalization, I used RLE plot(a plot usually use to assess variation in samples) to assess whether the normalization procedure has been successful.
+
+```{r echo=FALSE, out.width = '100%'}
+knitr::include_graphics("RLE_plot.png")
+```
+<strong> Figure 3: RLEplot to compare variation in Normalized and  un-normalized data </strong>
+
+### 2.3 Data Analysis
+To show the differences between the baseline and post-treatment time-points for MCL1 and CXCL1. I have used boxplots, which provide the statistic summary of expression of both MCL1 and CXCL1 (Fig. 4 and Table 4).
+
+```{r echo=FALSE, out.width = '100%'}
+knitr::include_graphics("boxPlot.png")
+```
+<strong> Figure 4: Boxplot showing differences between the baseline and post-treatment time-points for MCL1 and CXCL1 </strong>
+
+
+<strong> Table 3: Table showing statistic values in figure 4</strong>
+```{r table4, echo=FALSE}
+knitr::kable(read.csv("boxPlotStat.csv"), format = "html") %>%
+  kable_styling()
+```
+
+## 3. Reference
+Arjun Bhattacharya, Alina M Hamilton, Helena Furberg, Eugene Pietzak, Mark P Purdue, Melissa A Troester, Katherine A Hoadley, Michael I Love, An approach for normalization and quality control for NanoString RNA expression data, Briefings in Bioinformatics, Volume 22, Issue 3, May 2021.
